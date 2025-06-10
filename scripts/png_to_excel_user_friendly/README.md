@@ -32,16 +32,20 @@ A user-friendly Python script that converts PNG images in a selected folder into
 
 ## Usage
 
-1. Double-click the `png_to_excel_user_friendly.py` script or run it from the terminal:
+1. Open Terminal and navigate to the script directory:
    ```bash
-   python png_to_excel_user_friendly.py
+   cd /path/to/scripts/png_to_excel_user_friendly
    ```
-2. A folder selection dialog will appear - select the folder containing your PNG images
-3. The script will:
+2. Run the script:
+   ```bash
+   python3 png_to_excel_user_friendly.py
+   ```
+3. A folder selection dialog will appear - select the folder containing your PNG images
+4. The script will:
    - Create a new folder named "[Your Folder Name] EXCEL" next to your images
    - Generate thumbnails for all PNG files
    - Create an Excel file named `png_info.xlsx` with all the image information
-4. When complete, a message will show the location of the saved Excel file
+5. When complete, a message will show the location of the saved Excel file
 
 ## Output
 
