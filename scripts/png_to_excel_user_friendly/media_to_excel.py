@@ -5,10 +5,13 @@ Media to Excel Converter
 
 This script converts images and PDFs in a specified folder into an Excel file with thumbnails and metadata.
 
-The script will guide you through:
-1. Selecting the input folder containing your media files
-2. Choosing where to save the output
-3. Naming your output Excel file
+Usage:
+    python3 media_to_excel.py -i /path/to/input/folder -o /path/to/output/folder [-n output_name]
+
+Options:
+    -i, --input     Path to the folder containing media files (required)
+    -o, --output    Path to the output folder (required)
+    -n, --name      Name for the output Excel file (default: media_info)
 
 Requirements:
 - Python 3.9+
@@ -42,6 +45,7 @@ import os
 import sys
 import subprocess
 import importlib.util
+import argparse
 from pathlib import Path
 
 # List of required packages - don't modify unless you know what you're doing
@@ -79,38 +83,34 @@ def get_image_from_file(file_path):
         # Open image file
         return Image.open(file_path)
 
-def get_user_input(prompt, default=None):
-    """Get user input with optional default value."""
-    if default:
-        user_input = input(f"{prompt} [{default}]: ").strip()
-        return user_input if user_input else default
-    return input(f"{prompt}: ").strip()
-
 def main():
-    print("\n=== Media to Excel Converter ===\n")
-    
-    # Step 1: Get input directory
-    while True:
-        input_dir = get_user_input("Enter the folder path containing your media files")
-        if os.path.isdir(input_dir):
-            break
-        print(f"Error: '{input_dir}' is not a valid directory. Please try again.")
+    # Set up command line arguments
+    parser = argparse.ArgumentParser(description='Convert media files in a folder to an Excel spreadsheet with metadata.')
+    parser.add_argument('-i', '--input', required=True, help='Path to the folder containing media files')
+    parser.add_argument('-o', '--output', required=True, help='Path to the output folder')
+    parser.add_argument('-n', '--name', default='media_info', help='Name for the output Excel file (without .xlsx)')
+    args = parser.parse_args()
 
-    # Step 2: Get output directory
-    while True:
-        output_dir = get_user_input("Enter the folder path where you want to save the results")
-        try:
-            os.makedirs(output_dir, exist_ok=True)
-            # Create thumbnails subfolder
-            thumbnails_dir = os.path.join(output_dir, "thumbnails")
-            os.makedirs(thumbnails_dir, exist_ok=True)
-            break
-        except Exception as e:
-            print(f"Error creating output directory: {e}. Please try again.")
+    # Get input and output directories
+    input_dir = args.input
+    output_dir = args.output
+    excel_name = args.name
 
-    # Step 3: Get Excel filename
-    default_name = "media_info"
-    excel_name = get_user_input("Enter a name for your Excel file (without .xlsx)", default_name)
+    # Check if input directory exists
+    if not os.path.isdir(input_dir):
+        print(f"Error: Input directory '{input_dir}' is not a valid directory")
+        sys.exit(1)
+
+    # Create output directory and thumbnails subfolder
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        thumbnails_dir = os.path.join(output_dir, "thumbnails")
+        os.makedirs(thumbnails_dir, exist_ok=True)
+    except Exception as e:
+        print(f"Error creating output directory: {e}")
+        sys.exit(1)
+
+    # Add .xlsx extension if not present
     if not excel_name.endswith('.xlsx'):
         excel_name += '.xlsx'
 
@@ -119,11 +119,11 @@ def main():
                   if Path(f).suffix.lower() in SUPPORTED_EXTENSIONS]
     
     if not media_files:
-        print(f"\nNo supported files found in '{input_dir}'")
+        print(f"No supported files found in '{input_dir}'")
         print(f"Supported extensions: {', '.join(SUPPORTED_EXTENSIONS)}")
         sys.exit(0)
 
-    print(f"\nProcessing {len(media_files)} files...")
+    print(f"Processing {len(media_files)} files...")
 
     # Create Excel workbook and worksheet
     wb = Workbook()
