@@ -1,4 +1,4 @@
-# software-studios
+# fs-utilities
 
 This repository contains a collection of user-friendly scripts and tools for various software and media processing tasks.
 
