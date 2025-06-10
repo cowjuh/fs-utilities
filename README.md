@@ -4,7 +4,7 @@ This repository contains a collection of user-friendly scripts and tools for var
 
 ## Available Scripts
 
-### Media to Excel Converter (`scripts/png_to_excel_user_friendly/media_to_excel.py`)
+### Media to Excel Converter (`scripts/media_to_excel`)
 
 A Python script that converts various media files (PNG, TIFF, JPEG, PDF) in a specified folder into an organized Excel spreadsheet. The spreadsheet includes thumbnails and detailed metadata for each file (filename, dimensions in pixels and inches, color mode, and format).
 
