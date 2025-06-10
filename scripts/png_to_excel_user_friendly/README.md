@@ -6,6 +6,33 @@ This tool converts all PNG images in a selected folder into an Excel file with t
 - Python 3.9 or newer (install from https://www.python.org if needed)
 - pip (Python package manager)
 
+## Installing Python and pip on macOS
+
+If you don't have Python 3.9+ and pip installed, follow these steps:
+
+### 1. Install Homebrew (if you don't have it)
+Homebrew is a popular package manager for macOS. Open Terminal and run:
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+### 2. Install Python (includes pip)
+With Homebrew installed, run:
+```sh
+brew install python
+```
+This will install the latest version of Python 3 and pip.
+
+### 3. Verify Installation
+Check that Python 3 and pip are installed:
+```sh
+python3 --version
+pip3 --version
+```
+You should see Python 3.9 or newer and a pip version.
+
+If you have any issues, visit the [official Python installation guide](https://docs.python.org/3/using/mac.html) or [Homebrew documentation](https://brew.sh/).
+
 ## Setup
 1. Open Terminal.
 2. Navigate to this folder. For example:
