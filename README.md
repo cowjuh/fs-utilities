@@ -4,7 +4,7 @@ This repository contains a collection of user-friendly scripts and tools for var
 
 ## Available Scripts
 
-### Media to Excel Converter (`scripts/png_to_excel_user_friendly`)
+### Media to Excel Converter (`scripts/png_to_excel_user_friendly/media_to_excel.py`)
 
 A Python script that converts various media files (PNG, TIFF, JPEG, PDF) in a specified folder into an organized Excel spreadsheet. The spreadsheet includes thumbnails and detailed metadata for each file (filename, dimensions in pixels and inches, color mode, and format).
 
@@ -14,6 +14,13 @@ A Python script that converts various media files (PNG, TIFF, JPEG, PDF) in a sp
 - Organizes thumbnails in a separate subfolder
 - Includes detailed metadata in the Excel output
 - Customizable output filename
+
+#### Requirements:
+- Python 3.9 or higher
+- Required Python packages (automatically installed if missing):
+  - Pillow
+  - openpyxl
+  - pdf2image (for PDF support)
 
 #### Usage:
 ```bash
@@ -34,6 +41,17 @@ This will:
 1. Process all supported files in the input folder
 2. Create thumbnails in a "thumbnails" subfolder
 3. Generate an Excel file with metadata and image previews
+
+#### Output:
+The script creates an Excel file with the following columns:
+- Image: Thumbnail preview (256x256 pixels)
+- Filename: Original filename
+- Width (px): Image width in pixels
+- Height (px): Image height in pixels
+- Width (in): Image width in inches (calculated at 300 DPI)
+- Height (in): Image height in inches (calculated at 300 DPI)
+- Mode: Color mode (e.g., RGB, RGBA)
+- Format: Original file format
 
 ---
 
