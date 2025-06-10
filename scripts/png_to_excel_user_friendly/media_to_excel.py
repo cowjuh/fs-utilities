@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
 """
-PNG to Excel Converter
-======================
+Media to Excel Converter
+=======================
 
-This script converts all PNG images in a selected folder into an Excel file with thumbnails and metadata.
+This script converts all PNG images in a specified folder into an Excel file with thumbnails and metadata.
 
-How to use:
-1. Double-click or run this script. It will prompt you to select a folder.
-2. The script will check and install any missing dependencies (Pillow, openpyxl, tkinter).
-3. The resulting Excel file will be saved in a new folder next to your images.
+Usage:
+    python3 media_to_excel.py -i /path/to/input/folder -o /path/to/output/folder
 
-If you have issues, ensure you have Python 3.9+ and Homebrew installed.
+The script will:
+1. Process all PNG files in the input folder
+2. Create thumbnails and collect metadata
+3. Save an Excel file with the information in the output folder
+
+Requirements:
+- Python 3.9+
+- Pillow
+- openpyxl
 """
 import os
 import sys
 import subprocess
 import importlib.util
+import argparse
 
 # List of required packages
 REQUIRED_PACKAGES = ["Pillow", "openpyxl"]
@@ -31,32 +38,31 @@ try:
     from openpyxl import Workbook
     from openpyxl.drawing.image import Image as XLImage
     from openpyxl.utils import get_column_letter
-    import tkinter as tk
-    from tkinter import filedialog, messagebox
 except ImportError as e:
     print(f"Failed to import required modules: {e}")
     sys.exit(1)
 
-def select_folder():
-    root = tk.Tk()
-    root.withdraw()
-    folder = filedialog.askdirectory(title="Select Folder Containing PNG Files")
-    if not folder:
-        messagebox.showinfo("No Folder Selected", "No folder was selected. Exiting.")
-        sys.exit(0)
-    return folder
-
 def main():
-    SRC_DIR = select_folder()
-    BASE_DIR = os.path.dirname(SRC_DIR)
-    FOLDER_NAME = os.path.basename(SRC_DIR)
-    DEST_DIR = os.path.join(BASE_DIR, FOLDER_NAME + " EXCEL")
+    parser = argparse.ArgumentParser(description='Convert PNG files in a folder to an Excel spreadsheet with metadata.')
+    parser.add_argument('-i', '--input', required=True, help='Path to the folder containing PNG files')
+    parser.add_argument('-o', '--output', required=True, help='Path to the output folder for Excel file and thumbnails')
+    args = parser.parse_args()
+
+    SRC_DIR = args.input
+    DEST_DIR = args.output
+
+    if not os.path.isdir(SRC_DIR):
+        print(f"Error: Input directory '{SRC_DIR}' is not a valid directory")
+        sys.exit(1)
+
     os.makedirs(DEST_DIR, exist_ok=True)
 
     png_files = [f for f in os.listdir(SRC_DIR) if f.lower().endswith('.png')]
     if not png_files:
-        messagebox.showinfo("No PNG Files", "No PNG files found in the selected folder.")
+        print(f"No PNG files found in '{SRC_DIR}'")
         sys.exit(0)
+
+    print(f"Processing {len(png_files)} PNG files...")
 
     wb = Workbook()
     ws = wb.active
@@ -98,7 +104,7 @@ def main():
 
     out_path = os.path.join(DEST_DIR, 'png_info.xlsx')
     wb.save(out_path)
-    messagebox.showinfo("Done", f"Excel sheet saved to:\n{out_path}")
+    print(f"\nDone! Excel sheet saved to:\n{out_path}")
 
 if __name__ == "__main__":
     main() 
