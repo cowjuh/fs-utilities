@@ -3,29 +3,49 @@
 Media to Excel Converter
 =======================
 
-This script converts all PNG images in a specified folder into an Excel file with thumbnails and metadata.
+This script converts images and PDFs in a specified folder into an Excel file with thumbnails and metadata.
 
-Usage:
-    python3 media_to_excel.py -i /path/to/input/folder -o /path/to/output/folder
-
-The script will:
-1. Process all PNG files in the input folder
-2. Create thumbnails and collect metadata
-3. Save an Excel file with the information in the output folder
+The script will guide you through:
+1. Selecting the input folder containing your media files
+2. Choosing where to save the output
+3. Naming your output Excel file
 
 Requirements:
 - Python 3.9+
 - Pillow
 - openpyxl
+- pdf2image (for PDF support)
+
+HOW TO MODIFY THIS SCRIPT:
+-------------------------
+1. To add new columns:
+   - Find the 'headers' list below (around line 80)
+   - Add your new column name to the list
+   - Add the corresponding data in the loop below (around line 100)
+   - Example: To add a "File Size" column:
+     * Add "File Size" to headers list
+     * Add: ws.cell(row=row, column=9, value=os.path.getsize(path))
+
+2. To change thumbnail size:
+   - Find the line with 'thumb.thumbnail((256, 256)' (around line 95)
+   - Change the numbers to your desired size (width, height)
+
+3. To change DPI for inch calculations:
+   - Find the line with 'w_in = w / 300' (around line 90)
+   - Change 300 to your desired DPI
+
+4. To change Excel column widths:
+   - Find the section with 'ws.column_dimensions' (around line 80)
+   - Adjust the width values (currently set to 20)
 """
 import os
 import sys
 import subprocess
 import importlib.util
-import argparse
+from pathlib import Path
 
-# List of required packages
-REQUIRED_PACKAGES = ["Pillow", "openpyxl"]
+# List of required packages - don't modify unless you know what you're doing
+REQUIRED_PACKAGES = ["Pillow", "openpyxl", "pdf2image"]
 
 # Check and install missing packages
 for pkg in REQUIRED_PACKAGES:
@@ -38,73 +58,140 @@ try:
     from openpyxl import Workbook
     from openpyxl.drawing.image import Image as XLImage
     from openpyxl.utils import get_column_letter
+    from pdf2image import convert_from_path
 except ImportError as e:
     print(f"Failed to import required modules: {e}")
     sys.exit(1)
 
+# Supported file extensions
+SUPPORTED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.tif', '.tiff', '.pdf'}
+
+def get_image_from_file(file_path):
+    """Get image from file, handling both images and PDFs."""
+    ext = Path(file_path).suffix.lower()
+    if ext == '.pdf':
+        # Convert first page of PDF to image
+        images = convert_from_path(file_path, first_page=1, last_page=1)
+        if images:
+            return images[0]
+        return None
+    else:
+        # Open image file
+        return Image.open(file_path)
+
+def get_user_input(prompt, default=None):
+    """Get user input with optional default value."""
+    if default:
+        user_input = input(f"{prompt} [{default}]: ").strip()
+        return user_input if user_input else default
+    return input(f"{prompt}: ").strip()
+
 def main():
-    parser = argparse.ArgumentParser(description='Convert PNG files in a folder to an Excel spreadsheet with metadata.')
-    parser.add_argument('-i', '--input', required=True, help='Path to the folder containing PNG files')
-    parser.add_argument('-o', '--output', required=True, help='Path to the output folder for Excel file and thumbnails')
-    args = parser.parse_args()
+    print("\n=== Media to Excel Converter ===\n")
+    
+    # Step 1: Get input directory
+    while True:
+        input_dir = get_user_input("Enter the folder path containing your media files")
+        if os.path.isdir(input_dir):
+            break
+        print(f"Error: '{input_dir}' is not a valid directory. Please try again.")
 
-    SRC_DIR = args.input
-    DEST_DIR = args.output
+    # Step 2: Get output directory
+    while True:
+        output_dir = get_user_input("Enter the folder path where you want to save the results")
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+            # Create thumbnails subfolder
+            thumbnails_dir = os.path.join(output_dir, "thumbnails")
+            os.makedirs(thumbnails_dir, exist_ok=True)
+            break
+        except Exception as e:
+            print(f"Error creating output directory: {e}. Please try again.")
 
-    if not os.path.isdir(SRC_DIR):
-        print(f"Error: Input directory '{SRC_DIR}' is not a valid directory")
-        sys.exit(1)
+    # Step 3: Get Excel filename
+    default_name = "media_info"
+    excel_name = get_user_input("Enter a name for your Excel file (without .xlsx)", default_name)
+    if not excel_name.endswith('.xlsx'):
+        excel_name += '.xlsx'
 
-    os.makedirs(DEST_DIR, exist_ok=True)
-
-    png_files = [f for f in os.listdir(SRC_DIR) if f.lower().endswith('.png')]
-    if not png_files:
-        print(f"No PNG files found in '{SRC_DIR}'")
+    # Get list of supported files
+    media_files = [f for f in os.listdir(input_dir) 
+                  if Path(f).suffix.lower() in SUPPORTED_EXTENSIONS]
+    
+    if not media_files:
+        print(f"\nNo supported files found in '{input_dir}'")
+        print(f"Supported extensions: {', '.join(SUPPORTED_EXTENSIONS)}")
         sys.exit(0)
 
-    print(f"Processing {len(png_files)} PNG files...")
+    print(f"\nProcessing {len(media_files)} files...")
 
+    # Create Excel workbook and worksheet
     wb = Workbook()
     ws = wb.active
-    ws.title = "PNG Info"
-    headers = ["Image", "Filename", "Width (px)", "Height (px)", "Width (in)", "Height (in)", "Mode", "Format"]
+    ws.title = "Media Info"
+
+    # Define column headers - Add or modify columns here
+    headers = [
+        "Image",           # Column A: Thumbnail preview
+        "Filename",        # Column B: Original filename
+        "Width (px)",      # Column C: Width in pixels
+        "Height (px)",     # Column D: Height in pixels
+        "Width (in)",      # Column E: Width in inches (at 300 DPI)
+        "Height (in)",     # Column F: Height in inches (at 300 DPI)
+        "Mode",           # Column G: Color mode (RGB, RGBA, etc.)
+        "Format"          # Column H: Original file format
+    ]
     ws.append(headers)
-    ws.column_dimensions[get_column_letter(1)].width = 20
+
+    # Set column widths - Adjust these numbers to change column widths
+    ws.column_dimensions[get_column_letter(1)].width = 20  # Image column
     for i in range(2, len(headers)+1):
         ws.column_dimensions[get_column_letter(i)].width = 20
 
-    row = 2
-    for fname in png_files:
-        path = os.path.join(SRC_DIR, fname)
+    # Process each file
+    row = 2  # Start from row 2 (row 1 has headers)
+    for fname in media_files:
+        path = os.path.join(input_dir, fname)
         try:
-            img = Image.open(path)
+            img = get_image_from_file(path)
+            if img is None:
+                print(f"Skipping {fname}: Could not process file")
+                continue
         except Exception as e:
             print(f"Skipping {fname}: {e}")
             continue
+
+        # Get image dimensions and convert to inches (at 300 DPI)
         w, h = img.size
-        w_in = w / 300
-        h_in = h / 300
+        w_in = w / 300  # Change 300 to adjust DPI
+        h_in = h / 300  # Change 300 to adjust DPI
         mode = img.mode
-        fmt = img.format or 'PNG'
+        fmt = Path(fname).suffix[1:].upper()  # Get original file extension
+
+        # Create thumbnail
         thumb = img.copy()
-        thumb.thumbnail((128, 128), Image.LANCZOS)
-        thumb_path = os.path.join(DEST_DIR, f"thumb_{fname}")
-        thumb.save(thumb_path)
+        thumb.thumbnail((256, 256), Image.LANCZOS)  # Increased thumbnail size
+        thumb_path = os.path.join(thumbnails_dir, f"thumb_{Path(fname).stem}.png")  # Save as PNG
+        thumb.save(thumb_path, "PNG")
+
+        # Add data to Excel
         xl_img = XLImage(thumb_path)
-        ws.row_dimensions[row].height = 100
-        ws.add_image(xl_img, f"A{row}")
-        ws.cell(row=row, column=2, value=fname)
-        ws.cell(row=row, column=3, value=w)
-        ws.cell(row=row, column=4, value=h)
-        ws.cell(row=row, column=5, value=round(w_in, 2))
-        ws.cell(row=row, column=6, value=round(h_in, 2))
-        ws.cell(row=row, column=7, value=mode)
-        ws.cell(row=row, column=8, value=fmt)
+        ws.row_dimensions[row].height = 150  # Increased row height for larger thumbnails
+        ws.add_image(xl_img, f"A{row}")  # Add thumbnail to column A
+        ws.cell(row=row, column=2, value=fname)  # Add filename to column B
+        ws.cell(row=row, column=3, value=w)      # Add width to column C
+        ws.cell(row=row, column=4, value=h)      # Add height to column D
+        ws.cell(row=row, column=5, value=round(w_in, 2))  # Add width in inches to column E
+        ws.cell(row=row, column=6, value=round(h_in, 2))  # Add height in inches to column F
+        ws.cell(row=row, column=7, value=mode)   # Add color mode to column G
+        ws.cell(row=row, column=8, value=fmt)    # Add original format to column H
         row += 1
 
-    out_path = os.path.join(DEST_DIR, 'png_info.xlsx')
+    # Save Excel file
+    out_path = os.path.join(output_dir, excel_name)
     wb.save(out_path)
     print(f"\nDone! Excel sheet saved to:\n{out_path}")
+    print(f"Thumbnails saved to:\n{thumbnails_dir}")
 
 if __name__ == "__main__":
     main() 
