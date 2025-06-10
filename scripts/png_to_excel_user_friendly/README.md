@@ -1,55 +1,63 @@
 # PNG to Excel Converter
 
-This tool converts all PNG images in a selected folder into an Excel file with thumbnails and metadata.
+A user-friendly Python script that converts PNG images in a selected folder into an organized Excel spreadsheet with thumbnails and detailed image metadata.
+
+## Features
+
+- Converts all PNG images in a selected folder to an Excel spreadsheet
+- Creates thumbnails of each image
+- Includes detailed metadata for each image:
+  - Image thumbnail
+  - Filename
+  - Width (in pixels)
+  - Height (in pixels)
+  - Width (in inches)
+  - Height (in inches)
+  - Color mode
+  - Image format
 
 ## Requirements
-- Python 3.9 or newer (install from https://www.python.org if needed)
-- pip (Python package manager)
 
-## Installing Python and pip on macOS
+- Python 3.9 or higher
+- Required Python packages (automatically installed if missing):
+  - Pillow
+  - openpyxl
+  - tkinter (usually comes with Python)
 
-If you don't have Python 3.9+ and pip installed, follow these steps:
+## Installation
 
-### 1. Install Homebrew (if you don't have it)
-Homebrew is a popular package manager for macOS. Open Terminal and run:
-```sh
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-### 2. Install Python (includes pip)
-With Homebrew installed, run:
-```sh
-brew install python
-```
-This will install the latest version of Python 3 and pip.
-
-### 3. Verify Installation
-Check that Python 3 and pip are installed:
-```sh
-python3 --version
-pip3 --version
-```
-You should see Python 3.9 or newer and a pip version.
-
-If you have any issues, visit the [official Python installation guide](https://docs.python.org/3/using/mac.html) or [Homebrew documentation](https://brew.sh/).
-
-## Setup
-1. Open Terminal.
-2. Navigate to this folder. For example:
-   ```sh
-   cd /Users/cowjuh/Documents/scripts/png_to_excel_user_friendly
-   ```
-3. Install the required Python packages:
-   ```sh
-   pip install -r requirements.txt
-   ```
+1. Ensure you have Python 3.9+ installed on your system
+2. Clone or download this repository
+3. Navigate to the script directory
 
 ## Usage
-1. In Terminal, run:
-   ```sh
-   python3 png_to_excel_user_friendly.py
-   ```
-2. A window will appear asking you to select the folder containing your PNG files.
-3. The script will create a new folder next to your images with an Excel file containing thumbnails and image information.
 
-If you have any issues, ensure you are using Python 3.9+ and that all dependencies are installed. 
+1. Double-click the `png_to_excel_user_friendly.py` script or run it from the terminal:
+   ```bash
+   python png_to_excel_user_friendly.py
+   ```
+2. A folder selection dialog will appear - select the folder containing your PNG images
+3. The script will:
+   - Create a new folder named "[Your Folder Name] EXCEL" next to your images
+   - Generate thumbnails for all PNG files
+   - Create an Excel file named `png_info.xlsx` with all the image information
+4. When complete, a message will show the location of the saved Excel file
+
+## Output
+
+The script creates an Excel file with the following columns:
+- Image: Thumbnail preview of the PNG
+- Filename: Original filename
+- Width (px): Image width in pixels
+- Height (px): Image height in pixels
+- Width (in): Image width in inches (calculated at 300 DPI)
+- Height (in): Image height in inches (calculated at 300 DPI)
+- Mode: Color mode (e.g., RGB, RGBA)
+- Format: Image format (PNG)
+
+## Notes
+
+- The script automatically handles missing dependencies
+- If no PNG files are found in the selected folder, the script will notify you and exit
+- Thumbnails are created at 128x128 pixels maximum while maintaining aspect ratio
+- The Excel file is saved in a new folder to keep your original files organized 
