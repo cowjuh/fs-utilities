@@ -51,7 +51,7 @@ import io
 from datetime import datetime
 import openpyxl.styles
 
-# List of required packages - don't modify unless you know what you're doing
+# List of required packages - don't modify unless you know what you're doing!
 REQUIRED_PACKAGES = ["Pillow", "openpyxl", "pdf2image"]
 
 # Check and install missing packages
